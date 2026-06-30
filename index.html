@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Uygulaması Test Örneği</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; background-color: #f4f4f4; color: #333; }
+        h1, h2, h3 { color: #0056b3; }
+        .test-results { margin-top: 30px; padding: 15px; border: 1px solid #ccc; background-color: #fff; border-radius: 5px; }
+        .test-results ul { list-style-type: none; padding: 0; }
+        .test-pass { color: green; font-weight: bold; }
+        .test-fail { color: red; font-weight: bold; }
+        .test-summary { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #eee; }
+        pre { background-color: #e9e9e9; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Basit Web Uygulaması Test Örneği</h1>
+    <p>Bu sayfa, bir web uygulamasının temel JavaScript fonksiyonunun nasıl test edilebileceğini göstermektedir. Yazılım testinin temel prensiplerini, yani bir fonksiyonun beklenen şekilde çalışıp çalışmadığını ve hata durumlarını doğru yönetip yönetmediğini doğrulamayı amaçlar.</p>
+
+    <h2>Uygulama Mantığı: İndirim Hesaplayıcı</h2>
+    <p>Aşağıdaki JavaScript fonksiyonu, verilen fiyat ve indirim yüzdesine göre yeni fiyatı hesaplar. Bu, bir e-ticaret uygulamasında sıkça karşılaşılan bir işlevdir.</p>
+    <pre><code>
+function calculateDiscount(price, discountPercentage) {
+    if (typeof price !== 'number' || typeof discountPercentage !== 'number') {
+        throw new Error("Fiyat ve indirim yüzdesi sayı olmalıdır.");
+    }
+    if (price < 0) {
+        throw new Error("Fiyat negatif olamaz.");
+    }
+    if (discountPercentage < 0 || discountPercentage > 100) {
+        throw new Error("İndirim yüzdesi 0 ile 100 arasında olmalıdır.");
+    }
+
+    const discountAmount = price * (discountPercentage / 100);
+    return parseFloat((price - discountAmount).toFixed(2)); // Küsürat hatalarını önlemek için
+}
+    </code></pre>
+
+    <h2>Test Sonuçları</h2>
+    <div id="testResults" class="test-results">
+        Yükleniyor...
+    </div>
+
+    <script>
+        // --- Uygulama Mantığı: Test Edilecek Fonksiyon ---
+        /**
+         * Belirtilen fiyat ve indirim yüzdesine göre yeni fiyatı hesaplar.
+         * @param {number} price - Ürünün orijinal fiyatı.
+         * @param {number} discountPercentage - Uygulanacak indirim yüzdesi (0-100 arası).
+         * @returns {number} İndirimli fiyat.
+         * @throws {Error} Geçersiz girişler için hata fırlatır.
+         */
+        function calculateDiscount(price, discountPercentage) {
+            // Bu, test edilecek ana fonksiyondur.
+            if (typeof price !== 'number' || typeof discountPercentage !== 'number') {
+                throw new Error("Fiyat ve indirim yüzdesi sayı olmalıdır.");
+            }
+            if (price < 0) {
+                throw new Error("Fiyat negatif olamaz.");
+            }
+            if (discountPercentage < 0 || discountPercentage > 100) {
+                throw new Error("İndirim yüzdesi 0 ile 100 arasında olmalıdır.");
+            }
+
+            const discountAmount = price * (discountPercentage / 100);
+            return parseFloat((price - discountAmount).toFixed(2)); // Küsürat hatalarını önlemek için
+        }
+
+        // --- Basit Test Çerçevesi ---
+        const testResultsDiv = document.getElementById('testResults');
+        let totalTests = 0;
+        let passedTests = 0;
+
+        // assert fonksiyonu, bir koşulun doğruluğunu kontrol eder ve sonucu kaydeder.
+        function assert(condition, message) {
+            totalTests++;
+            const li = document.createElement('li');
+            if (condition) {
+                li.className = 'test-pass';
+                li.textContent = `GEÇTİ: ${message}`;
+                passedTests++;
+            } else {
+                li.className = 'test-fail';
+                li.textContent = `KALDI: ${message}`;
+                console.error(`Test Başarısız: ${message}`);
+            }
+            testResultsDiv.querySelector('ul').appendChild(li);
+            return condition;
+        }
+
+        // test fonksiyonu, belirli bir test grubunu çalıştırır ve başlığını görüntüler.
+        function test(name, testFunction) {
+            const h3 = document.createElement('h3');
+            h3.textContent = `Test Grubu: ${name}`;
+            testResultsDiv.appendChild(h3);
+            testResultsDiv.appendChild(document.createElement('ul')); // Her test grubu için yeni bir liste
+            try {
+                testFunction();
+            } catch (e) {
+                assert(false, `Beklenmedik hata oluştu: ${e.message}`);
+            }
+        }
+
+        // --- Test Senaryoları ---
+        testResultsDiv.innerHTML = '<h3>Testler Çalıştırılıyor...</h3>'; // Başlangıç mesajı
+
+        test('calculateDiscount fonksiyonunun doğru çalışması', () => {
+            // Fonksiyonun beklenen çıktıları doğru hesaplayıp hesaplamadığını kontrol ederiz.
+            assert(calculateDiscount(100, 10) === 90, '100 TL için %10 indirim 90 TL olmalı.');
+            assert(calculateDiscount(200, 25) === 150, '200 TL için %25 indirim 150 TL olmalı.');
+            assert(calculateDiscount(50, 0) === 50, '50 TL için %0 indirim 50 TL olmalı.');
+            assert(calculateDiscount(100, 100) === 0, '100 TL için %100 indirim 0 TL olmalı.');
+            assert(calculateDiscount(99.99, 10) === 89.99, '99.99 TL için %10 indirim 89.99 TL olmalı.');
+        });
+
+        test('calculateDiscount fonksiyonunun hata durumlarını yönetmesi', () => {
+            // Fonksiyonun geçersiz girişler için doğru hataları fırlatıp fırlatmadığını kontrol ederiz.
+            // Negatif fiyat testi
+            try {
+                calculateDiscount(-100, 10);
+                assert(false, 'Negatif fiyat için hata fırlatılmalıydı.');
+            } catch (e) {
+                assert(e.message === "Fiyat negatif olamaz.", 'Negatif fiyat hatası doğru mesajı içermeli.');
+            }
+
+            // Geçersiz indirim yüzdesi (negatif) testi
+            try {
+                calculateDiscount(100, -5);
+                assert(false, 'Negatif indirim yüzdesi için hata fırlatılmalıydı.');
+            } catch (e) {
+                assert(e.message === "İndirim yüzdesi 0 ile 100 arasında olmalıdır.", 'Negatif indirim yüzdesi hatası doğru mesajı içermeli.');
+            }
+
+            // Geçersiz indirim yüzdesi (100'den büyük) testi
+            try {
+                calculateDiscount(100, 101);
+                assert(false, '100den büyük indirim yüzdesi için hata fırlatılmalıydı.');
+            } catch (e) {
+                assert(e.message === "İndirim yüzdesi 0 ile 100 arasında olmalıdır.", '100den büyük indirim yüzdesi hatası doğru mesajı içermeli.');
+            }
+
+            // Sayı olmayan fiyat girişi testi
+            try {
+                calculateDiscount("abc", 10);
+                assert(false, 'String fiyat için hata fırlatılmalıydı.');
+            } catch (e) {
+                assert(e.message === "Fiyat ve indirim yüzdesi sayı olmalıdır.", 'String fiyat hatası doğru mesajı içermeli.');
+            }
+
+            // Sayı olmayan indirim yüzdesi girişi testi
+            try {
+                calculateDiscount(100, "xyz");
+                assert(false, 'String indirim yüzdesi için hata fırlatılmalıydı.');
+            } catch (e) {
+                assert(e.message === "Fiyat ve indirim yüzdesi sayı olmalıdır.", 'String indirim yüzdesi hatası doğru mesajı içermeli.');
+            }
+        });
+
+        // --- Test Özeti ---
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'test-summary';
+        summaryDiv.innerHTML = `
+            <p><strong>Toplam Test: ${totalTests}</strong></p>
+            <p class="test-pass"><strong>Geçen Test: ${passedTests}</strong></p>
+            <p class="test-fail"><strong>Kalan Test: ${totalTests - passedTests}</strong></p>
+        `;
+        testResultsDiv.appendChild(summaryDiv);
+    </script>
+</body>
+</html>
